@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>本日のテーブル No.</title>
+<style>
+  :root{
+    --paper:#FAF8F3;
+    --card:#FFFFFF;
+    --ink:#22323B;
+    --ink-soft:#6A7A82;
+    --line:#E7E2D8;
+    --teal:#0C7A6B;
+    --teal-deep:#095246;
+    --teal-soft:#E3F0EC;
+    --coral:#EC6B4E;
+    --coral-soft:#FBE5DD;
+    --shadow:0 1px 2px rgba(20,40,40,.05), 0 8px 24px rgba(20,40,40,.06);
+    --r:16px;
+    --jp:"Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Noto Sans JP","Meiryo",system-ui,sans-serif;
+    --maru:"Hiragino Maru Gothic ProN","Yu Gothic","Noto Sans JP",var(--jp);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:var(--jp);
+    color:var(--ink);
+    background:
+      radial-gradient(120% 80% at 50% -10%, #fff 0%, var(--paper) 55%) fixed;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    padding:clamp(16px,4vw,40px);
+  }
+  .wrap{max-width:1320px;margin:0 auto}
+
+  /* ---- header ---- */
+  header{
+    display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;
+    margin-bottom:22px;
+  }
+  .brand{
+    font-family:var(--maru);
+    font-size:clamp(26px,4.5vw,40px);
+    font-weight:800;letter-spacing:.01em;
+    color:var(--teal-deep);
+    display:flex;align-items:center;gap:.5em;
+  }
+  .brand .dot{
+    width:.42em;height:.42em;border-radius:3px;background:var(--coral);
+    transform:rotate(8deg);display:inline-block;
+  }
+  .sub{color:var(--ink-soft);font-size:14px}
+
+  /* ---- control panel ---- */
+  .panel{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+    box-shadow:var(--shadow);
+    padding:clamp(16px,3vw,24px);
+    margin-bottom:18px;
+  }
+  .fields{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:14px 18px;align-items:end;
+  }
+  .field label{
+    display:block;font-size:12.5px;font-weight:700;color:var(--ink-soft);
+    letter-spacing:.04em;margin-bottom:6px;
+  }
+  .field input[type="number"],
+  .field input[type="text"]{
+    width:100%;font-family:var(--maru);
+    font-size:22px;font-weight:700;color:var(--ink);
+    padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;
+    background:#fff;transition:border-color .15s, box-shadow .15s;
+  }
+  .field input:focus{
+    outline:none;border-color:var(--teal);
+    box-shadow:0 0 0 3px var(--teal-soft);
+  }
+  .field .hint{font-size:11px;color:var(--ink-soft);margin-top:5px;font-weight:500}
+
+  .cap-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--teal-soft);color:var(--teal-deep);
+    font-weight:700;font-size:13px;border-radius:999px;
+    padding:7px 14px;white-space:nowrap;
+  }
+
+  /* segmented toggle */
+  .seg{display:inline-flex;background:#F1EEE7;border-radius:999px;padding:3px;gap:2px}
+  .seg button{
+    border:0;background:transparent;cursor:pointer;
+    font-family:var(--jp);font-size:13px;font-weight:700;color:var(--ink-soft);
+    padding:7px 14px;border-radius:999px;transition:.15s;
+  }
+  .seg button[aria-pressed="true"]{background:#fff;color:var(--teal-deep);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+
+  /* checkbox toggle */
+  .check{display:inline-flex;align-items:center;gap:8px;cursor:pointer;
+    font-size:14px;font-weight:700;color:var(--ink);user-select:none}
+  .check input{width:18px;height:18px;accent-color:var(--teal);cursor:pointer}
+  .linkbtn{background:none;border:0;padding:0;cursor:pointer;
+    color:var(--teal);font-size:11px;font-weight:700;text-decoration:underline;font-family:var(--jp)}
+  .linkbtn:hover{color:var(--coral)}
+
+  .controls-row{
+    display:flex;flex-wrap:wrap;gap:14px;align-items:center;
+    margin-top:18px;padding-top:18px;border-top:1px dashed var(--line);
+  }
+  .controls-row .grow{flex:1 1 120px}
+
+  .btn{
+    font-family:var(--maru);font-weight:800;cursor:pointer;border:0;
+    border-radius:14px;transition:transform .08s, box-shadow .15s, background .15s;
+  }
+  .btn:active{transform:translateY(1px)}
+  .btn-go{
+    background:var(--teal);color:#fff;font-size:18px;
+    padding:14px 30px;box-shadow:0 6px 16px rgba(12,122,107,.28);
+  }
+  .btn-go:hover{background:var(--teal-deep)}
+  .btn-ghost{
+    background:#fff;color:var(--teal-deep);border:1.5px solid var(--line);
+    font-size:14px;padding:11px 18px;
+  }
+  .btn-ghost:hover{border-color:var(--teal)}
+
+  .msg{margin-top:14px;font-size:14px;font-weight:600;min-height:1.2em}
+  .msg.error{color:#C0432A}
+  .msg.ok{color:var(--teal-deep)}
+
+  /* ---- results ---- */
+  .results{display:none}
+  .results.show{display:block}
+  .res-head{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    flex-wrap:wrap;margin:26px 2px 14px;
+  }
+  .res-title{font-family:var(--maru);font-size:20px;font-weight:800;color:var(--teal-deep)}
+  .res-meta{font-size:13px;color:var(--ink-soft)}
+
+  /* view: by number */
+  .num-head{display:flex;align-items:center;gap:10px;margin:2px 2px 12px}
+  .num-head .lab{font-size:13px;font-weight:800;letter-spacing:.04em}
+  .num-head .lab.sid{color:var(--ink);background:#fff;border:1.5px solid var(--line);padding:5px 12px;border-radius:9px}
+  .num-head .lab.arrow{color:var(--ink-soft)}
+  .num-head .lab.tno{color:#fff;background:var(--teal);padding:5px 14px;border-radius:9px}
+  .num-grid{
+    display:grid;gap:7px;
+    grid-template-columns:repeat(10,minmax(0,1fr));
+  }
+  .num-card{
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    min-width:0;overflow:hidden;
+    background:var(--card);border:1px solid var(--line);border-radius:10px;
+    padding:7px 6px;box-shadow:var(--shadow);
+    opacity:0;transform:translateY(6px);
+    animation:pop .32s ease forwards;
+  }
+  .num-card .sid{
+    font-family:var(--maru);font-weight:800;font-size:15px;color:var(--ink);
+  }
+  .num-card .arrow{color:var(--ink-soft);font-weight:700;font-size:12px}
+  .num-card .tno{
+    font-family:var(--maru);font-weight:800;font-size:16px;
+    color:#fff;background:var(--teal);
+    min-width:1.7em;text-align:center;border-radius:7px;padding:2px 6px;
+  }
+  .num-card.absent{background:#F6F4EF;opacity:.7}
+  .num-card.absent .tno{background:var(--ink-soft);font-size:11px;padding:3px 7px}
+  @media (max-width:820px){ .num-grid{grid-template-columns:repeat(5,1fr)} }
+
+  /* view: by table */
+  .table-grid{
+    display:grid;gap:12px;
+    grid-template-columns:repeat(6,1fr); /* JSで実際の列数に上書き */
+  }
+  .tcard{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;
+    box-shadow:var(--shadow);padding:14px;
+    opacity:0;transform:translateY(6px);animation:pop .32s ease forwards;
+  }
+  .tcard .tlabel{
+    font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--ink-soft);
+    margin-bottom:10px;display:flex;align-items:center;gap:6px;
+  }
+  .tcard .tlabel .no{
+    font-family:var(--maru);font-size:18px;color:var(--teal-deep);letter-spacing:0;
+  }
+  .seats{display:flex;gap:8px}
+  .seat{
+    flex:1;height:62px;border-radius:11px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--maru);font-weight:800;font-size:26px;
+  }
+  .seat.full{background:var(--teal-soft);color:var(--teal-deep)}
+  .seat.empty{
+    border:2px dashed var(--line);color:var(--line);font-size:15px;font-weight:700;
+  }
+  .tcard.lonely .seat.full{background:var(--coral-soft);color:#B84A2E}
+  .tcard.vacant{opacity:.55}
+
+  @keyframes pop{to{opacity:1;transform:translateY(0)}}
+
+  footer{margin-top:30px;text-align:center;color:var(--ink-soft);font-size:12px}
+
+  @media (prefers-reduced-motion:reduce){
+    .num-card,.tcard{animation:none;opacity:1;transform:none}
+  }
+
+  /* ---- 全画面ディスプレイ ---- */
+  .display-overlay{
+    position:fixed;inset:0;z-index:1000;display:none;
+    flex-direction:column;background:var(--paper);
+    padding:clamp(10px,1.4vmin,22px);gap:1vmin;
+  }
+  .display-overlay.show{display:flex}
+  .display-bar{display:flex;align-items:center;gap:1.6vw;flex-wrap:wrap;padding:.3vmin .4vmin}
+  .display-bar .d-title{font-family:var(--maru);font-weight:800;color:var(--teal-deep);font-size:min(2.4vw,4vh)}
+  .d-legend{display:flex;align-items:center;gap:.7vw}
+  .d-legend .lab{font-size:min(1.5vw,2.6vh);font-weight:800}
+  .d-legend .lab.sid{color:var(--ink);background:#fff;border:1.5px solid var(--line);padding:.3vh .9vw;border-radius:.7vmin}
+  .d-legend .lab.arrow{color:var(--ink-soft)}
+  .d-legend .lab.tno{color:#fff;background:var(--teal);padding:.3vh 1vw;border-radius:.7vmin}
+  .d-actions{margin-left:auto;display:flex;gap:1vw;align-items:center}
+
+  .dnum-grid{
+    flex:1;min-height:0;display:grid;
+    grid-template-columns:repeat(10,minmax(0,1fr));grid-auto-rows:1fr;gap:.5vmin;
+  }
+  .dcell{
+    display:flex;align-items:center;justify-content:center;gap:.35vw;
+    min-width:0;overflow:hidden;box-sizing:border-box;padding:0 .25vw;
+    background:var(--card);border:1px solid var(--line);border-radius:1vmin;
+  }
+  .dcell .dsid{font-family:var(--maru);font-weight:800;color:var(--ink);font-size:min(2vw,6.5vh)}
+  .dcell .darrow{color:var(--ink-soft);font-size:min(1.4vw,4vh)}
+  .dcell .dtno{
+    font-family:var(--maru);font-weight:800;color:#fff;background:var(--teal);
+    border-radius:.8vmin;padding:.1vh .5vw;min-width:1.3em;text-align:center;
+    font-size:min(2vw,6.5vh);
+  }
+  .dcell.absent{opacity:.5}
+  .dcell.absent .dtno{background:var(--ink-soft);font-size:min(1.3vw,3.5vh)}
+
+  .dtable-grid{
+    flex:1;min-height:0;display:grid;
+    grid-template-columns:repeat(6,1fr);grid-auto-rows:1fr;gap:1vmin; /* JSで列数上書き */
+  }
+  .dtcard{background:var(--card);border:1px solid var(--line);border-radius:1vmin;padding:1vmin;display:flex;flex-direction:column;gap:.6vmin;min-width:0;overflow:hidden;box-sizing:border-box}
+  .dtcard .dtlabel{font-size:min(1.3vw,2.4vh);font-weight:800;color:var(--ink-soft)}
+  .dtcard .dtlabel .no{font-family:var(--maru);color:var(--teal-deep);font-size:min(1.9vw,3vh)}
+  .dseats{display:flex;gap:.6vmin;flex:1;min-height:0}
+  .dseat{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;font-family:var(--maru);font-weight:800;border-radius:.8vmin;font-size:min(2.4vw,5.5vh)}
+  .dseat.full{background:var(--teal-soft);color:var(--teal-deep)}
+  .dseat.empty{border:2px dashed var(--line);color:var(--line);font-size:min(1.2vw,2.5vh)}
+  .dtcard.lonely .dseat.full{background:var(--coral-soft);color:#B84A2E}
+
+  /* ---- print ---- */
+  @media print{
+    body{background:#fff;padding:0;color:#000}
+    .panel,footer,.btn,.seg,.no-print{display:none !important}
+    .res-head{margin-top:0}
+    .num-card,.tcard{box-shadow:none;border-color:#ccc;animation:none;opacity:1;transform:none}
+    .num-card .tno{background:#000 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .seat.full{background:#eee !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand"><span class="dot"></span>本日のテーブル No.</div>
+    <div class="sub">出席番号ごとに座るテーブルをランダムに決めます</div>
+  </header>
+
+  <!-- 設定パネル -->
+  <div class="panel no-print">
+    <div class="fields">
+      <div class="field">
+        <label for="numStudents">生徒の人数</label>
+        <input id="numStudents" type="number" min="1" max="200" value="42" inputmode="numeric">
+        <div class="hint">出席番号 1〜この人数まで</div>
+      </div>
+      <div class="field">
+        <label for="numTables">テーブルの数</label>
+        <input id="numTables" type="number" min="1" max="200" value="22" inputmode="numeric">
+        <div class="hint" id="tableHint">最大 42 名まで座れます</div>
+      </div>
+      <div class="field">
+        <label for="absent">欠席番号(任意)</label>
+        <input id="absent" type="text" placeholder="例: 3, 17, 28" inputmode="numeric">
+        <div class="hint">カンマ区切り。空席にできます</div>
+      </div>
+      <div class="field">
+        <label>1テーブルの定員</label>
+        <div class="cap-badge">👥 最大 2 名</div>
+      </div>
+    </div>
+
+    <div class="controls-row">
+      <div class="field">
+        <label>座らせ方</label>
+        <div class="seg" id="modeSeg" role="group" aria-label="座らせ方">
+          <button type="button" data-mode="pack" aria-pressed="true">2人ずつ詰める</button>
+          <button type="button" data-mode="random" aria-pressed="false">ばらけて座る</button>
+        </div>
+      </div>
+      <div class="field grow">
+        <label>くり返し回避</label>
+        <label class="check"><input type="checkbox" id="avoidPrev" checked>前回と違う相手にする</label>
+        <div class="hint" style="display:flex;gap:10px;align-items:center">
+          <span id="histHint">前回の記録: なし</span>
+          <button type="button" class="linkbtn" id="resetHist">記録をリセット</button>
+        </div>
+      </div>
+      <button class="btn btn-go" id="goBtn">🎲 席をきめる</button>
+    </div>
+
+    <div class="msg" id="msg"></div>
+  </div>
+
+  <!-- 結果 -->
+  <div class="results" id="results">
+    <div class="res-head">
+      <div>
+        <div class="res-title" id="resTitle">座席が決まりました</div>
+        <div class="res-meta" id="resMeta"></div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap" class="no-print">
+        <button class="btn btn-go" id="displayBtn" style="padding:11px 20px;font-size:15px">🖥 全画面で表示</button>
+        <div class="seg" id="viewSeg" role="group" aria-label="表示切替">
+          <button type="button" data-view="num" aria-pressed="true">出席番号順</button>
+          <button type="button" data-view="table" aria-pressed="false">テーブル別</button>
+        </div>
+        <button class="btn btn-ghost" id="rerollBtn">↻ もう一度</button>
+        <button class="btn btn-ghost" id="printBtn">🖨 印刷</button>
+      </div>
+    </div>
+    <div id="numHead" class="num-head">
+      <span class="lab sid">出席番号</span>
+      <span class="lab arrow">→</span>
+      <span class="lab tno">テーブルNo</span>
+    </div>
+    <div id="numView" class="num-grid"></div>
+    <div id="tableNote" class="num-head" style="display:none">
+      <span style="font-size:13px;font-weight:700;color:var(--ink-soft)">🪑 教室のテーブル配置どおりに並んでいます</span>
+    </div>
+    <div id="tableView" class="table-grid" style="display:none"></div>
+  </div>
+
+  <footer>1テーブル最大2名・抽選はランダム / オフラインでも動作します</footer>
+</div>
+
+<!-- 全画面ディスプレイ -->
+<div id="display" class="display-overlay" aria-hidden="true">
+  <div class="display-bar">
+    <div class="d-title">本日のテーブル No.</div>
+    <div class="d-legend">
+      <span class="lab sid">出席番号</span>
+      <span class="lab arrow">→</span>
+      <span class="lab tno">テーブルNo</span>
+    </div>
+    <div class="d-actions">
+      <div class="seg" id="dViewSeg" role="group" aria-label="表示切替">
+        <button type="button" data-view="num" aria-pressed="true">出席番号順</button>
+        <button type="button" data-view="table" aria-pressed="false">テーブル別</button>
+      </div>
+      <button class="btn btn-ghost" id="dClose">✕ 閉じる</button>
+    </div>
+  </div>
+  <div id="dNum" class="dnum-grid"></div>
+  <div id="dTable" class="dtable-grid" style="display:none"></div>
+</div>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const CAP = 2;
+  let mode = 'pack';
+  let view = 'num';
+  let avoidPrev = true;
+  let prevPairs = new Set(); // 前回いっしょだったペア "min-max"
+  let lastRes = null, lastN = 0; // 直近の結果（全画面表示用）
+  let dView = 'num';            // 全画面の表示モード
+
+  // ---- 設定の記憶（GitHub Pages 等で有効。失敗しても無視）----
+  const store = {
+    get(k,d){ try{ const v=localStorage.getItem('seat_'+k); return v===null?d:v }catch(e){ return d } },
+    set(k,v){ try{ localStorage.setItem('seat_'+k, v) }catch(e){} }
+  };
+  $('numStudents').value = store.get('students', $('numStudents').value);
+  $('numTables').value   = store.get('tables',   $('numTables').value);
+  mode = store.get('mode','pack');
+  setSeg('modeSeg','mode',mode);
+  avoidPrev = store.get('avoid','1')==='1';
+  $('avoidPrev').checked = avoidPrev;
+  try{ prevPairs = new Set(JSON.parse(store.get('pairs','[]'))); }catch(e){ prevPairs = new Set(); }
+  updateHist();
+
+  function updateHist(){
+    $('histHint').textContent = prevPairs.size
+      ? `前回の記録: あり (${prevPairs.size}組)`
+      : '前回の記録: なし';
+  }
+  function pairKey(a,b){ return a<b ? a+'-'+b : b+'-'+a; }
+
+  // ---- ユーティリティ ----
+  function shuffle(a){
+    for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+  function parseAbsent(str,max){
+    const set=new Set();
+    (str||'').split(/[,、\s]+/).forEach(t=>{
+      const n=parseInt(t,10);
+      if(!isNaN(n)&&n>=1&&n<=max) set.add(n);
+    });
+    return set;
+  }
+
+  // ---- 抽選ロジック ----
+  // 1回ぶんの席割り（ランダム）を作る
+  function buildOnce(present,numTables){
+    const students=shuffle(present.slice());
+    const tables=Array.from({length:numTables},()=>[]);
+    let slots=[];
+    if(mode==='pack'){
+      // テーブルをランダム順に並べ、前から2人ずつ詰める
+      shuffle(Array.from({length:numTables},(_,i)=>i)).forEach(t=>{ slots.push(t,t); });
+    }else{
+      // 全座席をシャッフルしてばらける
+      for(let t=0;t<numTables;t++) for(let c=0;c<CAP;c++) slots.push(t);
+      shuffle(slots);
+    }
+    students.forEach((s,i)=> tables[slots[i]].push(s));
+    return tables;
+  }
+  // 前回と同じペアが何組できているか数える
+  function countRepeats(tables){
+    let c=0;
+    tables.forEach(o=>{ if(o.length===2 && prevPairs.has(pairKey(o[0],o[1]))) c++; });
+    return c;
+  }
+
+  function assign(numStudents,numTables,absentSet){
+    const present=[];
+    for(let i=1;i<=numStudents;i++) if(!absentSet.has(i)) present.push(i);
+    const need=Math.ceil(present.length/CAP);
+    if(present.length > numTables*CAP){
+      return {error:`テーブルが足りません。${present.length}名を座らせるには、最低 ${need} テーブル必要です。`};
+    }
+
+    const hadHistory = avoidPrev && prevPairs.size>0;
+    let tables, repeats=0;
+    if(avoidPrev && prevPairs.size){
+      // 前回と同じペアが出ないものを探す（最大400回まで試行）
+      let best=null, bestC=Infinity;
+      for(let k=0;k<400;k++){
+        const cand=buildOnce(present,numTables);
+        const c=countRepeats(cand);
+        if(c<bestC){ bestC=c; best=cand; }
+        if(c===0) break;
+      }
+      tables=best; repeats=bestC;
+    }else{
+      tables=buildOnce(present,numTables);
+    }
+
+    const map={};
+    tables.forEach((occ,ti)=> occ.forEach(s=> map[s]=ti+1));
+    // 今回のペアを記録（次回の「前回」になる）
+    const newPairs=new Set();
+    tables.forEach(o=>{ if(o.length===2) newPairs.add(pairKey(o[0],o[1])); });
+    return {tables,map,present,absent:[...absentSet].sort((a,b)=>a-b),repeats,newPairs,hadHistory};
+  }
+
+  // ---- テーブルの物理配置（配置図どおり）----
+  // [行, 列] 1始まり
+  const LAYOUT={
+    1:[1,1], 2:[2,1], 3:[3,1], 4:[4,1],
+    5:[1,2], 6:[2,2], 7:[3,2], 8:[4,2], 22:[5,2],
+    9:[1,3], 10:[2,3], 11:[3,3], 12:[4,3],
+    13:[1,4], 14:[2,4], 15:[3,4], 16:[4,4],
+    17:[1,5], 18:[2,5], 19:[3,5], 20:[4,5],
+    21:[2,6]
+  };
+  function tablePositions(numTables){
+    const pos={};
+    for(let n=1;n<=Math.min(numTables,22);n++) pos[n]=LAYOUT[n];
+    // 23以降は配置図の下に追加
+    let er=6, ec=1;
+    for(let n=23;n<=numTables;n++){ pos[n]=[er,ec]; ec++; if(ec>6){ec=1;er++;} }
+    let maxR=1,maxC=1;
+    Object.values(pos).forEach(([r,c])=>{ maxR=Math.max(maxR,r); maxC=Math.max(maxC,c); });
+    return {pos,maxR,maxC};
+  }
+
+  // ---- 描画 ----
+  // 番号リスト（出席番号順）
+  function renderNumList(){
+    const numView=$('numView');
+    if(!lastRes){ numView.innerHTML=''; return; }
+    let h='';
+    for(let i=1;i<=lastN;i++){
+      const ab=!(i in lastRes.map);
+      h+=`<div class="num-card${ab?' absent':''}" style="animation-delay:${Math.min(i,40)*12}ms">`+
+         `<span class="sid">${i}</span><span class="arrow">→</span>`+
+         `<span class="tno">${ab?'欠席':lastRes.map[i]}</span></div>`;
+    }
+    numView.innerHTML=h;
+  }
+
+  function render(numStudents,res){
+    const tableView=$('tableView');
+    // テーブル別（教室の配置どおり）
+    const {pos,maxC}=tablePositions(res.tables.length);
+    tableView.style.gridTemplateColumns=`repeat(${maxC},1fr)`;
+    tableView.innerHTML='';
+    res.tables.forEach((occ,ti)=>{
+      const n=ti+1, p=pos[n];
+      if(!p) return;
+      const card=document.createElement('div');
+      const cls=['tcard'];
+      if(occ.length===0) cls.push('vacant');
+      if(occ.length===1) cls.push('lonely');
+      card.className=cls.join(' ');
+      card.style.gridRow=p[0];
+      card.style.gridColumn=p[1];
+      card.style.animationDelay=(Math.min(ti,40)*14)+'ms';
+      let seats='';
+      for(let s=0;s<CAP;s++){
+        seats+= occ[s]!==undefined
+          ? `<div class="seat full">${occ[s]}</div>`
+          : `<div class="seat empty">空</div>`;
+      }
+      card.innerHTML=`<div class="tlabel">テーブル <span class="no">${n}</span></div><div class="seats">${seats}</div>`;
+      tableView.appendChild(card);
+    });
+    // メタ情報
+    const used=res.tables.filter(t=>t.length>0).length;
+    let meta=`${res.present.length}名 / ${res.tables.length}テーブル中 ${used}テーブル使用`;
+    if(res.absent.length) meta+=` ・ 欠席 ${res.absent.length}名 (${res.absent.join(', ')})`;
+    if(res.hadHistory){
+      meta += res.repeats===0
+        ? ' ・ ✓ 前回と全員ちがう相手'
+        : ` ・ ⚠ 前回と同じペアが ${res.repeats}組（席に余裕がなく回避しきれません）`;
+    }
+    $('resMeta').textContent=meta;
+  }
+
+  // ---- 実行 ----
+  function run(input){
+    const numStudents=parseInt($('numStudents').value,10);
+    const numTables=parseInt($('numTables').value,10);
+    const msg=$('msg');
+
+    if(!numStudents||numStudents<1){ return fail('生徒の人数を入力してください。'); }
+    if(!numTables||numTables<1){ return fail('テーブルの数を入力してください。'); }
+
+    const absentSet=parseAbsent($('absent').value,numStudents);
+    const res=assign(numStudents,numTables,absentSet);
+    if(res.error){ return fail(res.error); }
+
+    msg.className='msg ok'; msg.textContent='';
+    lastRes = res; lastN = numStudents;
+    render(numStudents,res);
+    $('results').classList.add('show');
+    setView(view);
+    if($('display').classList.contains('show')) renderDisplay(dView);
+    $('results').scrollIntoView({behavior:'smooth',block:'start'});
+
+    // 今回のペアを「前回」として記憶
+    prevPairs = res.newPairs;
+    store.set('pairs', JSON.stringify([...prevPairs]));
+    updateHist();
+
+    store.set('students',numStudents);
+    store.set('tables',numTables);
+    store.set('mode',mode);
+    store.set('avoid', avoidPrev?'1':'0');
+
+    function fail(t){ msg.className='msg error'; msg.textContent='⚠ '+t; $('results').classList.remove('show'); }
+  }
+
+  // ---- 表示切替・トグル ----
+  function setSeg(segId,which,val){
+    document.querySelectorAll('#'+segId+' button').forEach(b=>{
+      const v=b.dataset[which==='mode'?'mode':'view'];
+      b.setAttribute('aria-pressed', String(v===val));
+    });
+  }
+  function setView(v){
+    view=v; setSeg('viewSeg','view',v);
+    const isList = (v==='num');
+    $('numHead').style.display   = isList ? 'flex':'none';
+    $('numView').style.display   = isList ? 'grid':'none';
+    $('tableNote').style.display = v==='table' ? 'flex':'none';
+    $('tableView').style.display = v==='table' ? 'grid':'none';
+    if(isList) renderNumList();
+  }
+
+  // ---- 全画面ディスプレイ ----
+  function renderDisplay(v){
+    dView=v; setSeg('dViewSeg','view',v);
+    const isList = (v==='num');
+    $('dNum').style.display   = isList ? 'grid':'none';
+    $('dTable').style.display = v==='table' ? 'grid':'none';
+    if(!lastRes) return;
+    if(isList){
+      let h='';
+      for(let i=1;i<=lastN;i++){
+        const ab=!(i in lastRes.map);
+        h+=`<div class="dcell${ab?' absent':''}"><span class="dsid">${i}</span>`+
+           `<span class="darrow">→</span><span class="dtno">${ab?'欠':lastRes.map[i]}</span></div>`;
+      }
+      $('dNum').innerHTML=h;
+    }else{
+      const {pos,maxC}=tablePositions(lastRes.tables.length);
+      $('dTable').style.gridTemplateColumns=`repeat(${maxC},1fr)`;
+      let h='';
+      lastRes.tables.forEach((occ,ti)=>{
+        const n=ti+1, p=pos[n];
+        if(!p) return;
+        const cls=['dtcard'];
+        if(occ.length===1) cls.push('lonely');
+        let seats='';
+        for(let s=0;s<CAP;s++){
+          seats+= occ[s]!==undefined ? `<div class="dseat full">${occ[s]}</div>` : `<div class="dseat empty">空</div>`;
+        }
+        h+=`<div class="${cls.join(' ')}" style="grid-row:${p[0]};grid-column:${p[1]}">`+
+           `<div class="dtlabel">テーブル <span class="no">${n}</span></div><div class="dseats">${seats}</div></div>`;
+      });
+      $('dTable').innerHTML=h;
+    }
+  }
+  function openDisplay(){
+    if(!lastRes) return;
+    renderDisplay(dView);
+    const ov=$('display'); ov.classList.add('show'); ov.setAttribute('aria-hidden','false');
+    if(ov.requestFullscreen) ov.requestFullscreen().catch(()=>{});
+  }
+  function closeDisplay(){
+    const ov=$('display'); ov.classList.remove('show'); ov.setAttribute('aria-hidden','true');
+    if(document.fullscreenElement) document.exitFullscreen().catch(()=>{});
+  }
+  document.addEventListener('fullscreenchange',()=>{
+    if(!document.fullscreenElement && $('display').classList.contains('show')) closeDisplay();
+  });
+
+  // テーブル定員ヒント更新
+  function updateHint(){
+    const t=parseInt($('numTables').value,10)||0;
+    $('tableHint').textContent=`最大 ${t*CAP} 名まで座れます`;
+  }
+  $('numTables').addEventListener('input',updateHint); updateHint();
+
+  // ---- イベント ----
+  $('goBtn').addEventListener('click',()=>run());
+  $('rerollBtn').addEventListener('click',()=>run());
+  $('printBtn').addEventListener('click',()=>window.print());
+  $('displayBtn').addEventListener('click',openDisplay);
+  $('dClose').addEventListener('click',closeDisplay);
+  document.querySelectorAll('#dViewSeg button').forEach(b=>{
+    b.addEventListener('click',()=>renderDisplay(b.dataset.view));
+  });
+
+  document.querySelectorAll('#modeSeg button').forEach(b=>{
+    b.addEventListener('click',()=>{ mode=b.dataset.mode; setSeg('modeSeg','mode',mode); });
+  });
+  document.querySelectorAll('#viewSeg button').forEach(b=>{
+    b.addEventListener('click',()=>setView(b.dataset.view));
+  });
+  $('avoidPrev').addEventListener('change',e=>{
+    avoidPrev=e.target.checked; store.set('avoid', avoidPrev?'1':'0');
+  });
+  $('resetHist').addEventListener('click',()=>{
+    prevPairs=new Set(); store.set('pairs','[]'); updateHist();
+    const m=$('msg'); m.className='msg ok'; m.textContent='前回の記録を消しました。次の抽選はまっさらな状態で行います。';
+  });
+  // Enterで実行
+  ['numStudents','numTables','absent'].forEach(id=>{
+    $(id).addEventListener('keydown',e=>{ if(e.key==='Enter') run(); });
+  });
+})();
+</script>
+</body>
+</html>
